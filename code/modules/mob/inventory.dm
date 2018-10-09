@@ -110,6 +110,68 @@ var/list/slot_equipment_priority = list( \
 		newitem.forceMove(loc)
 	return stored
 
+/mob/proc/redraw_inv()
+	return 1
+
+/mob/living/carbon/human/redraw_inv()
+	var/obj/item/W
+	if(back)
+		W = back
+		W.hud_layerise()
+	if(wear_mask)
+		W = wear_mask
+		W.hud_layerise()
+	if(handcuffed)
+		W = handcuffed
+		W.hud_layerise()
+	if(l_hand)
+		W = l_hand
+		W.hud_layerise()
+	if(r_hand)
+		W = r_hand
+		W.hud_layerise()
+	if(belt)
+		W = belt
+		W.hud_layerise()
+	if(wear_id)
+		W = wear_id
+		W.hud_layerise()
+	if(l_ear)
+		W = l_ear
+		W.hud_layerise()
+	if(r_ear)
+		W = r_ear
+		W.hud_layerise()
+	if(glasses)
+		W = glasses
+		W.hud_layerise()
+	if(gloves)
+		W = gloves
+		W.hud_layerise()
+	if(head)
+		W = head
+		W.hud_layerise()
+	if(shoes)
+		W = shoes
+		W.hud_layerise()
+	if(wear_suit)
+		W = wear_suit
+		W.hud_layerise()
+	if(w_uniform)
+		W = w_uniform
+		W.hud_layerise()
+	if(l_store)
+		W = l_store
+		W.hud_layerise()
+	if(r_store)
+		W = r_store
+		W.hud_layerise()
+	if(s_store)
+		W = s_store
+		W.hud_layerise()
+	if(hud_used)
+		hud_used.persistant_inventory_update()
+		hud_used.hands_inventory_update()
 //These procs handle putting s tuff in your hand. It's probably best to use these rather than setting l_hand = ...etc
 //as they handle all relevant stuff like adding it to the player's screen and updating their overlays.
 

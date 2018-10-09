@@ -56,6 +56,4 @@ PROCESSING_SUBSYSTEM_DEF(circuit)
 		/obj/item/device/integrated_electronics/analyzer,
 		/obj/item/device/integrated_electronics/detailer,
 		/obj/item/weapon/card/data,
-		/obj/item/weapon/card/data/full_color,
-		/obj/item/weapon/card/data/disk
 		)

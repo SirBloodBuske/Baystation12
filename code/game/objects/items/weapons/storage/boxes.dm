@@ -35,15 +35,7 @@
 	max_w_class = ITEM_SIZE_NORMAL
 	max_storage_space = DEFAULT_LARGEBOX_STORAGE
 
-/obj/item/weapon/storage/box/union_cards
-	name = "box of union cards"
-	desc = "A box of spare unsigned union membership cards."
-	startswith = list(/obj/item/weapon/card/union = 7)
 
-/obj/item/weapon/storage/box/large/union_cards
-	name = "large box of union cards"
-	desc = "A large box of spare unsigned union membership cards."
-	startswith = list(/obj/item/weapon/card/union = 14)
 
 // BubbleWrap - A box can be folded up to make card
 /obj/item/weapon/storage/box/attack_self(mob/user as mob)

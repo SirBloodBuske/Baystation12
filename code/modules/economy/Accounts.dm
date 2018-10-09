@@ -4,14 +4,27 @@
 	var/account_number = 0
 	var/remote_access_pin = 0
 	var/money = 0
+	var/reserved = 0
 	var/list/transaction_log = list()
 	var/suspended = 0
-	var/security_level = 0	//0 - auto-identify from worn ID, require only account number
+	var/security_level = 1	//0 - auto-identify from worn ID, require only account number
 							//1 - require manual login / account number and pin
 							//2 - require card and manual login
+	var/account_type = 0	//0 - personal account
+							//1 - assignment category account
+							//3 - central faction account
+/datum/money_account/after_load()
+	if(get_account(account_number))
+		message_admins("duplicate account loaded owner: [owner_name] account_number: [account_number]")
+		qdel(src)
+	else
+		all_money_accounts.Add(src)
+	..()
 
 /datum/money_account/proc/do_transaction(var/datum/transaction/T)
 	money = max(0, money + T.amount)
+	if(transaction_log.len > 50)
+		transaction_log.Cut(1,2)
 	transaction_log += T
 
 /datum/money_account/proc/get_balance()
@@ -67,10 +80,9 @@
 	T.purpose = "Account creation"
 	T.amount = starting_funds
 	if(!source_db)
-		//set a random date, time and location some time over the past few decades
-		T.date = "[num2text(rand(1,31))] [pick("January","February","March","April","May","June","July","August","September","October","November","December")], [game_year-rand(8,18)]"
-		T.time = "[rand(0,24)]:[rand(11,59)]"
-		T.source_terminal = "NTGalaxyNet Terminal #[rand(111,1111)]"
+		T.date = stationdate2text()
+		T.time = stationtime2text()
+		T.source_terminal = "NTGalaxyNet Frontier Accounts"
 
 		M.account_number = random_id("station_account_number", 111111, 999999)
 	else
@@ -84,7 +96,7 @@
 
 		var/obj/item/weapon/paper/R = new /obj/item/weapon/paper(P)
 		P.wrapped = R
-		R.SetName("Account information: [M.owner_name]")
+		R.name = "Account information: [M.owner_name]"
 		R.info = "<b>Account details (confidential)</b><br><hr><br>"
 		R.info += "<i>Account holder:</i> [M.owner_name]<br>"
 		R.info += "<i>Account number:</i> [M.account_number]<br>"
@@ -92,7 +104,7 @@
 		R.info += "<i>Starting balance:</i> T[M.money]<br>"
 		R.info += "<i>Date and time:</i> [stationtime2text()], [stationdate2text()]<br><br>"
 		R.info += "<i>Creation terminal ID:</i> [source_db.machine_id]<br>"
-		R.info += "<i>Authorised officer overseeing creation:</i> [source_db.held_card.registered_name]<br>"
+		R.info += "<i>Authorised NT officer overseeing creation:</i> [source_db.held_card.registered_name]<br>"
 
 		//stamp the paper
 		var/image/stampoverlay = image('icons/obj/bureaucracy.dmi')
@@ -117,6 +129,25 @@
 
 	//create a transaction log entry
 	var/datum/transaction/T = new(source_name, purpose, amount, terminal_id)
+	if(D.transaction_log.len > 50)
+		D.transaction_log.Cut(1,2)
+	D.transaction_log.Add(T)
+
+	return 1
+/proc/money_transfer(var/datum/money_account/payer, var/attempt_real_name, var/purpose, var/amount)
+	if(!payer || amount > payer.money)
+		return 0
+	var/datum/money_account/D = get_account_record(attempt_real_name)
+	if(!D || D.suspended)
+		return 1
+	var/datum/transaction/Te = new("[attempt_real_name]", purpose, -amount, 0)
+	payer.do_transaction(Te)
+	D.money = D.money + amount
+
+	//create a transaction log entry
+	var/datum/transaction/T = new(payer.owner_name, purpose, amount, 0)
+	if(D.transaction_log.len > 50)
+		D.transaction_log.Cut(1,2)
 	D.transaction_log.Add(T)
 
 	return 1
@@ -131,3 +162,7 @@
 	for(var/datum/money_account/D in all_money_accounts)
 		if(D.account_number == account_number)
 			return D
+/proc/get_account_record(var/real_name)
+	for(var/datum/computer_file/crew_record/L in GLOB.all_crew_records)
+		if(L.get_name() == real_name)
+			return L.linked_account
